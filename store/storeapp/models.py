@@ -15,28 +15,28 @@ class Manufacturer(models.Model):
     address = models.CharField(max_length=400)
 
     def __str__(self):
-        return f"{self.title}, {self.phone_number}, {self.address}"
+        return f"{self.title}"
 
 
 class Product(models.Model):
     title = models.CharField(max_length=180)
-    price = models.CharField(max_length=30)
-    description = models.CharField(max_length=500)
+    price = models.DecimalField(decimal_places=2, max_digits=10)
+    description = models.TextField(max_length=2000)
     photo = models.ImageField(upload_to="images/products", verbose_name="photo")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return f"{self.title}, {self.price}, {self.description}, {self.photo}, {self.category}, {self.manufacturer}"
+        return f"{self.title}, {self.manufacturer}"
 
 
 class Client(AbstractUser):
-    birthday = models.CharField(max_length=30)
+    birthday = models.DateField()
     phone_number = models.CharField(max_length=25)
     favourite_post = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}, {self.email}, {self.birthday}, {self.phone_number}, {self.favourite_post}, {self.product}"
+        return f"{self.first_name} {self.last_name} ({self.id})"
 
 
 class Order (models.Model):
@@ -49,7 +49,7 @@ class Order (models.Model):
         ("completed", "Завершено"),
         ("cancelled", "Скасовано"),
     ]
-    client = models.CharField(max_length=50)
+    client = models.ForeignKey(Client, on_delete=models.SET_NULL)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -61,7 +61,7 @@ class Order (models.Model):
 
 
 class Order_product (models.Model):
-    amount = models.CharField(max_length=150)
+    amount = models.PositiveIntegerField()
     product = models.ForeignKey(Product, on_delete=models.SET_NULL)
     order = models.ForeignKey(Order, on_delete=models.SET_NULL)
 
