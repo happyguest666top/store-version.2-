@@ -22,4 +22,8 @@ urlpatterns = [
     path("orders/create/", OrderCreateView.as_view(), name="order_create"),
     path("orders/<int:pk>/update/", OrderUpdateView.as_view(), name="order_update"),
     path("orders/<int:pk>/delete/", OrderDeleteView.as_view(), name="order_delete"),
+    path('home/', HomeView.as_view(), name='home'),
+    path('cart/', CartView.as_view(), name='cart'),
+    path('profile/', ProfileView.as_view(), name='profile'),
+    path('about/', AboutView.as_view(), name='about'),
 ]

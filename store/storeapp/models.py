@@ -1,12 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.urls import reverse
 
 
-class Category (models.Model):
+class Category(models.Model):
     title = models.CharField(max_length=180)
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('category_detail', args=[str(self.id)])
 
 
 class Manufacturer(models.Model):

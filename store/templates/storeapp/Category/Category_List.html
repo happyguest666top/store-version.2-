@@ -5,11 +5,14 @@
     <title>Title</title>
 </head>
 <body>
-{% for product in products %}
-{{product}}
-{% empty %}
-ще немає категорій
-{% endfor %}
-
+<h1>Категорії товарів</h1>
+<ul>
+  {% for category in categories %}
+    <li>
+      <a href="{{ category.get_absolute_url }}">{{ category.title }}</a>
+      (Товарів: {{ category.product_count }})
+    </li>
+  {% endfor %}
+</ul>
 </body>
 </html>
