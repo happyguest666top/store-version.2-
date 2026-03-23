@@ -1,0 +1,11 @@
+<h2>Login</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Увійти</button>
+</form>
+
+{% if form.errors %}
+<p style="color:red;">Невірний логін або пароль</p>
+{% endif %}

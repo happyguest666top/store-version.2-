@@ -3,7 +3,8 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from .models import Product, Category, Manufacturer, Client, Order, Order_product
 from django.db.models import Count
-from .mixins import (CreateUpdateMixin, SuccessUrlProductMixin, SuccessUrlCategoryMixin, SuccessUrlManufacturerMixin, SuccessUrlOrderMixin)
+from .mixins import (CreateUpdateMixin, SuccessUrlProductMixin, SuccessUrlCategoryMixin, SuccessUrlManufacturerMixin, SuccessUrlOrderMixin, AdminRequiredMixin)
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 class ProductListView(ListView):
     model = Product
@@ -28,19 +29,19 @@ class ProductDetailView(DetailView):
     template_name = "storeapp/Product/Product_Detail.html"
     context_object_name = "product"
 
-class ProductCreateView(CreateUpdateMixin, SuccessUrlProductMixin, CreateView):
+class ProductCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProductMixin, CreateView):
     model = Product
     fields = "__all__"
     template_name = "storeapp/Product/Product_Create.html"
     success_url = reverse_lazy("product_list")
 
-class ProductUpdateView(CreateUpdateMixin, SuccessUrlProductMixin, UpdateView):
+class ProductUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProductMixin, UpdateView):
     model = Product
     fields = "__all__"
     template_name = "storeapp/Product/Product_Update.html"
     success_url = reverse_lazy("product_list")
 
-class ProductDeleteView(SuccessUrlProductMixin, DeleteView):
+class ProductDeleteView(AdminRequiredMixin, SuccessUrlProductMixin, DeleteView):
     model = Product
     template_name = "storeapp/Product/Product_Delete.html"
     success_url = reverse_lazy("product_list")
@@ -59,19 +60,19 @@ class CategoryDetailView(DetailView):
         # Додаємо кількість продуктів у кожній категорії
         return Category.objects.annotate(product_count=Count('product'))
 
-class CategoryCreateView(CreateUpdateMixin, SuccessUrlCategoryMixin, CreateView):
+class CategoryCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlCategoryMixin, CreateView):
     model = Category
     fields = "__all__"
     template_name = "storeapp/Category/Category_Create.html"
     success_url = reverse_lazy("category_list")
 
-class CategoryUpdateView(CreateUpdateMixin, SuccessUrlCategoryMixin, UpdateView):
+class CategoryUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlCategoryMixin, UpdateView):
     model = Category
     fields = "__all__"
     template_name = "storeapp/Category/Category_Update.html"
     success_url = reverse_lazy("category_list")
 
-class CategoryDeleteView(SuccessUrlCategoryMixin, DeleteView):
+class CategoryDeleteView(AdminRequiredMixin, SuccessUrlCategoryMixin, DeleteView):
     model = Category
     template_name = "storeapp/Category/Category_Delete.html"
     success_url = reverse_lazy("category_list")
@@ -86,7 +87,7 @@ class ManufacturerDetailView(DetailView):
     template_name = "storeapp/Manufacturer/Manufacturer_Detail.html"
     context_object_name = "manufacturer"
 
-class ManufacturerCreateView(CreateUpdateMixin, SuccessUrlManufacturerMixin, CreateView):
+class ManufacturerCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlManufacturerMixin, CreateView):
     model = Manufacturer
     fields = "__all__"
     template_name = "storeapp/Manufacturer/Manufacturer_Create.html"
@@ -131,7 +132,7 @@ class OrderDeleteView(SuccessUrlOrderMixin, DeleteView):
     success_url = reverse_lazy("order_list")
 
 class HomeView(TemplateView):
-    template_name = "storeapp/home.html"
+    template_name = "storeapp/Additional/Home.html"
     succes_url = reverse_lazy('home')
 
     def get_context_data(self, **kwargs):
@@ -139,16 +140,16 @@ class HomeView(TemplateView):
         context['featured_products'] = Product.objects.all()[:10]
         return context
 
-class CartView(ListView):
-    template_name = "storeapp/cart.html"
+class CartView(LoginRequiredMixin, ListView):
+    template_name = "storeapp/Additional/Cart.html"
     context_object_name = "cart_items"
     succes_url = reverse_lazy('cart')
 
     def get_queryset(self):
         return Order_product.objects.filter(order__client=self.request.user, order__status="incart")
 
-class ProfileView(TemplateView):
-    template_name = "storeapp/profile.html"
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = "storeapp/Additional/Profile.html"
     succes_url = reverse_lazy('profile')
 
     def get_context_data(self, **kwargs):
@@ -157,7 +158,7 @@ class ProfileView(TemplateView):
         return context
 
 class AboutView(TemplateView):
-    template_name = "storeapp/about.html"
+    template_name = "storeapp/Additional/About.html"
     succes_url = reverse_lazy('about')
 
 

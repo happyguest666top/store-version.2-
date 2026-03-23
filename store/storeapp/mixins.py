@@ -1,4 +1,11 @@
 from django.urls import reverse_lazy
+from django.shortcuts import redirect
+
+class AdminRequiredMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
 
 class CreateUpdateMixin:
     fields = "__all__"
@@ -14,3 +21,4 @@ class SuccessUrlManufacturerMixin:
 
 class SuccessUrlOrderMixin:
     success_url = reverse_lazy("order_list")
+

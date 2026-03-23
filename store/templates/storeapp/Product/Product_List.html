@@ -1,24 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<form method="get">
-  <select name="category" onchange="this.form.submit()">
-    <option value="">Усі категорії</option>
-    {% for cat in categories %}
-      <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat: "s" %}selected{% endif %}>
-        {{ cat.title }}
-      </option>
-    {% endfor %}
-  </select>
+{% extends "base.html" %}
+
+{% block title %}Список продуктів{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4">Продукти</h1>
+
+<!-- ФІЛЬТР ПО КАТЕГОРІЯХ -->
+<form method="get" class="mb-4">
+    <div class="row">
+
+        <div class="col-md-4">
+            <select name="category" class="form-select">
+                <option value="">Всі категорії</option>
+
+                {% for category in categories %}
+                    <option value="{{ category.id }}"
+                        {% if request.GET.category == category.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ category.title }}
+                    </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+                Фільтр
+            </button>
+        </div>
+
+    </div>
 </form>
-<ul>
-  {% for product in products %}
-    <li>{{ product.title }} - {{ product.price }} грн</li>
-  {% endfor %}
-</ul>
-</body>
-</html>
+
+<!-- СПИСОК ПРОДУКТІВ -->
+<div class="row">
+
+    {% for product in products %}
+        <div class="col-md-4 mb-4">
+
+            <div class="card h-100">
+
+                {% if product.photo %}
+                    <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.title }}">
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.title }}</h5>
+
+                    <p class="card-text">
+                        {{ product.description|truncatewords:15 }}
+                    </p>
+
+                    <p>
+                        <strong>Ціна:</strong> {{ product.price }} грн
+                    </p>
+
+                    <p>
+                        <strong>Категорія:</strong>
+                        {{ product.category.title|default:"-" }}
+                    </p>
+
+                </div>
+
+                <div class="card-footer d-flex justify-content-between">
+
+                    <a href="{% url 'product_detail' product.pk %}" class="btn btn-sm btn-outline-primary">
+                        Детальніше
+                    </a>
+
+                    <a href="{% url 'product_update' product.pk %}" class="btn btn-sm btn-warning">
+                        Edit
+                    </a>
+
+                    <a href="{% url 'product_delete' product.pk %}" class="btn btn-sm btn-danger">
+                        Delete
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    {% empty %}
+        <p>Продуктів немає</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
