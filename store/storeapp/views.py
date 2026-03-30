@@ -1,10 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from .models import Product, Category, Manufacturer, Client, Order, Order_product
+from .models import Product, Category, Manufacturer, Order, Order_product
 from django.db.models import Count
 from .mixins import (CreateUpdateMixin, SuccessUrlProductMixin, SuccessUrlCategoryMixin, SuccessUrlManufacturerMixin, SuccessUrlOrderMixin, AdminRequiredMixin)
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.contrib.auth.views import LoginView, LogoutView
 
 class ProductListView(ListView):
     model = Product
@@ -161,4 +164,22 @@ class AboutView(TemplateView):
     template_name = "storeapp/Additional/About.html"
     succes_url = reverse_lazy('about')
 
+
+class CustomLoginView(LoginView):
+    template_name = "storeapp/login.html"
+    redirect_authenticated_user = True
+
+
+class CustomLogoutView(LogoutView):
+    next_page = "storeapp:login"
+
+
+class RegisterView(CreateView):
+    template_name = "storeapp/Additional/register.html"
+    form_class = UserCreationForm
+
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return redirect(reverse_lazy("storeapp:login"))
 

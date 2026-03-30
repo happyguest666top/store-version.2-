@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 from django.urls import reverse
 
 
@@ -34,18 +34,6 @@ class Product(models.Model):
         return f"{self.title}, {self.manufacturer}"
 
 
-class Client(AbstractUser):
-    ROLES = [('admin', 'Адміністратор'), ('client', 'Клієнт')]
-
-    birthday = models.DateField()
-    phone_number = models.CharField(max_length=25)
-    favourite_post = models.CharField(max_length=100)
-    role = models.CharField(max_length=25, choices=ROLES, default='client')
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.id})"
-
-
 class Order (models.Model):
 
     STATUS_CHOICES = [
@@ -56,7 +44,7 @@ class Order (models.Model):
         ("completed", "Завершено"),
         ("cancelled", "Скасовано"),
     ]
-    client = models.ForeignKey(Client, on_delete=models.SET_NULL, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
