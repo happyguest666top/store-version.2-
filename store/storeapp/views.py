@@ -36,18 +36,18 @@ class ProductCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProduct
     model = Product
     fields = "__all__"
     template_name = "storeapp/Product/Product_Create.html"
-    success_url = reverse_lazy("product_list")
+    success_url = reverse_lazy("storeapp:product_list")
 
 class ProductUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProductMixin, UpdateView):
     model = Product
     fields = "__all__"
     template_name = "storeapp/Product/Product_Update.html"
-    success_url = reverse_lazy("product_list")
+    success_url = reverse_lazy("storeapp:product_list")
 
 class ProductDeleteView(AdminRequiredMixin, SuccessUrlProductMixin, DeleteView):
     model = Product
     template_name = "storeapp/Product/Product_Delete.html"
-    success_url = reverse_lazy("product_list")
+    success_url = reverse_lazy("storeapp:product_list")
 
 class CategoryListView(ListView):
     model = Category
@@ -67,18 +67,18 @@ class CategoryCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlCatego
     model = Category
     fields = "__all__"
     template_name = "storeapp/Category/Category_Create.html"
-    success_url = reverse_lazy("category_list")
+    success_url = reverse_lazy("storeapp:category_list")
 
 class CategoryUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlCategoryMixin, UpdateView):
     model = Category
     fields = "__all__"
     template_name = "storeapp/Category/Category_Update.html"
-    success_url = reverse_lazy("category_list")
+    success_url = reverse_lazy("storeapp:category_list")
 
 class CategoryDeleteView(AdminRequiredMixin, SuccessUrlCategoryMixin, DeleteView):
     model = Category
     template_name = "storeapp/Category/Category_Delete.html"
-    success_url = reverse_lazy("category_list")
+    success_url = reverse_lazy("storeapp:category_list")
 
 class ManufacturerListView(ListView):
     model = Manufacturer
@@ -94,18 +94,18 @@ class ManufacturerCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlMa
     model = Manufacturer
     fields = "__all__"
     template_name = "storeapp/Manufacturer/Manufacturer_Create.html"
-    success_url = reverse_lazy("manufacturer_list")
+    success_url = reverse_lazy("storeapp:manufacturer_list")
 
 class ManufacturerUpdateView(CreateUpdateMixin, SuccessUrlManufacturerMixin, UpdateView):
     model = Manufacturer
     fields = "__all__"
     template_name = "storeapp/Manufacturer/Manufacturer_Update.html"
-    success_url = reverse_lazy("manufacturer_list")
+    success_url = reverse_lazy("storeapp:manufacturer_list")
 
 class ManufacturerDeleteView(SuccessUrlManufacturerMixin, DeleteView):
     model = Manufacturer
     template_name = "storeapp/Manufacturer/Manufacturer_Delete.html"
-    success_url = reverse_lazy("manufacturer_list")
+    success_url = reverse_lazy("storeapp:manufacturer_list")
 
 class OrderListView(ListView):
     model = Order
@@ -121,22 +121,22 @@ class OrderCreateView(CreateUpdateMixin, SuccessUrlOrderMixin, CreateView):
     model = Order
     fields = "__all__"
     template_name = "storeapp/Order/Order_Create.html"
-    success_url = reverse_lazy("order_list")
+    success_url = reverse_lazy("storeapp:order_list")
 
 class OrderUpdateView(CreateUpdateMixin, SuccessUrlOrderMixin, UpdateView):
     model = Order
     fields = "__all__"
     template_name = "storeapp/Order/Order_Update.html"
-    success_url = reverse_lazy("order_list")
+    success_url = reverse_lazy("storeapp:order_list")
 
 class OrderDeleteView(SuccessUrlOrderMixin, DeleteView):
     model = Order
     template_name = "storeapp/Order/Order_Delete.html"
-    success_url = reverse_lazy("order_list")
+    success_url = reverse_lazy("storeapp:order_list")
 
 class HomeView(TemplateView):
     template_name = "storeapp/Additional/Home.html"
-    succes_url = reverse_lazy('home')
+    succes_url = reverse_lazy('storeapp:home')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -146,14 +146,14 @@ class HomeView(TemplateView):
 class CartView(LoginRequiredMixin, ListView):
     template_name = "storeapp/Additional/Cart.html"
     context_object_name = "cart_items"
-    succes_url = reverse_lazy('cart')
+    succes_url = reverse_lazy('storeapp:cart')
 
     def get_queryset(self):
         return Order_product.objects.filter(order__client=self.request.user, order__status="incart")
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "storeapp/Additional/Profile.html"
-    succes_url = reverse_lazy('profile')
+    succes_url = reverse_lazy('storeapp:profile')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -162,7 +162,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
 class AboutView(TemplateView):
     template_name = "storeapp/Additional/About.html"
-    succes_url = reverse_lazy('about')
+    succes_url = reverse_lazy('storeapp:about')
 
 
 class CustomLoginView(LoginView):
