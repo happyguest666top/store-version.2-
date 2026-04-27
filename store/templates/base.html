@@ -2,79 +2,98 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Мій магазин{% endblock %}</title>
+    <title>{% block title %}Головна сторінка{% endblock %}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        /* ВЕРХНЄ МЕНЮ */
+        .navbar {
+            background-color: #212529 !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .navbar-brand, .nav-link {
+            font-weight: 400 !important;
+            text-shadow: none !important;
+        }
+
+        /* КОНТЕНТ (ПРОЗОРИЙ) */
+        .container.mt-4, .card, .registration-card {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ЧОРНИЙ ТЕКСТ */
+        h1, h2, h3, h4, h5, p, label, .fw-bold {
+            color: #000000 !important;
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5) !important;
+            font-weight: 700;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        /* НИЖНЄ ВІКОНЦЕ (ЩЕ ТЕМНІШЕ) */
+        footer {
+            background-color: #111111 !important; /* Глибокий чорний колір */
+            color: #ffffff !important;
+            padding: 10px 0;
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-
-        <a class="navbar-brand" href="{% url 'storeapp:home' %}">Shop</a>
-
+        <a class="navbar-brand" href="{% url 'storeapp:home' %}">SHOP</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'storeapp:product_list' %}">Продукти</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'storeapp:category_list' %}">Категорії</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'storeapp:manufacturer_list' %}">Виробники</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'storeapp:order_list' %}">Замовлення</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'storeapp:cart' %}">Кошик</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'storeapp:about' %}">Про нас</a>
-                </li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:product_list' %}">Продукти</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:category_list' %}">Категорії</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:manufacturer_list' %}">Виробники</a></li>
             </ul>
-
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'storeapp:profile' %}">
-                            Профіль ({{ user.username }})
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{% url 'storeapp:logout' %}">
-                            Вийти
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:profile' %}">Профіль</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'storeapp:logout' %}">Вийти</a></li>
                 {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'storeapp:login' %}">
-                            Увійти
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'storeapp:register' %}">
-                            Реєстрація
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:login' %}">Увійти</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:register' %}">Реєстрація</a></li>
                 {% endif %}
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-4 main-content">
     {% block content %}
     {% endblock %}
 </div>
 
-<footer class="bg-light text-center text-muted py-3 mt-5">
-    <small>© 2026 Мій Django магазин</small>
+<footer class="text-center">
+    <div class="container">
+        <small class="fw-bold">© 2026 Мій Django проект!</small>
+    </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
