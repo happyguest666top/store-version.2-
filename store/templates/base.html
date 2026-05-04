@@ -47,14 +47,29 @@
             flex: 1;
         }
 
-        /* НИЖНЄ ВІКОНЦЕ (ЩЕ ТЕМНІШЕ) */
+        /* НИЖНЄ ВІКОНЦЕ */
         footer {
-            background-color: #111111 !important; /* Глибокий чорний колір */
+            background-color: #111111 !important;
             color: #ffffff !important;
             padding: 10px 0;
             margin-top: auto;
             border-top: 1px solid rgba(255,255,255,0.05);
             width: 100%;
+        }
+
+        /* Стиль для кнопки виходу, щоб вона виглядала як посилання */
+        .logout-button {
+            background: none;
+            border: none;
+            color: #dc3545 !important; /* Червоний колір */
+            padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .logout-button:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -74,8 +89,17 @@
             </ul>
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="nav-link text-white opacity-75">Вітаємо, {{ user.username }}!</span>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:profile' %}">Профіль</a></li>
-                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'storeapp:logout' %}">Вийти</a></li>
+                    <li class="nav-item">
+                        <!-- Форма для безпечного виходу (Django 5+) -->
+                        <form method="post" action="{% url 'storeapp:logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-button">Вийти</button>
+                        </form>
+                    </li>
                 {% else %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:login' %}">Увійти</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'storeapp:register' %}">Реєстрація</a></li>
@@ -92,7 +116,7 @@
 
 <footer class="text-center">
     <div class="container">
-        <small class="fw-bold">© 2026 Мій Django проект!</small>
+        <small class="fw-bold text-white">© 2026 Мій Django проект!</small>
     </div>
 </footer>
 

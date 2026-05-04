@@ -3,92 +3,205 @@
 {% block title %}Список продуктів{% endblock %}
 
 {% block content %}
+<style>
+    /* Головні налаштування фону та прилягання */
+    body {
+        background-color: #d1d4d7; /* Фон по боках */
+        margin: 0;
+        padding: 0;
+    }
 
-<h1 class="mb-4">Продукти</h1>
+    /* Габарити вікна як у шаблоні реєстрації */
+    .main-window-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        min-height: calc(100vh - 56px); /* Торкається ліній */
+        margin-top: -50px;
+    }
 
-<!-- ФІЛЬТР ПО КАТЕГОРІЯХ -->
-<form method="get" class="mb-4">
-    <div class="row">
+    .white-window {
+        background-color: #ffffff !important;
+        width: 100%;
+        max-width: 1700px; /* Широке вікно */
+        min-height: 100vh;
+        margin: 0 auto;
+        border-radius: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
 
-        <div class="col-md-4">
-            <select name="category" class="form-select">
-                <option value="">Всі категорії</option>
+    /* Контент всередині */
+    .content-padding {
+        padding: 60px 40px;
+        flex-grow: 1;
+    }
 
-                {% for category in categories %}
-                    <option value="{{ category.id }}"
-                        {% if request.GET.category == category.id|stringformat:"s" %}
-                            selected
+    .catalog-header {
+        font-size: 2.8rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 40px;
+        color: #111;
+    }
+
+    /* Фільтр */
+    .filter-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 50px;
+    }
+
+    .filter-form {
+        display: flex;
+        gap: 15px;
+        width: 100%;
+        max-width: 550px;
+    }
+
+    .filter-select {
+        flex-grow: 1;
+        padding: 12px 20px;
+        font-size: 1.1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        background-color: #f8f9fa;
+    }
+
+    .btn-search {
+        padding: 12px 35px;
+        background-color: #111;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    .btn-search:hover {
+        background-color: #333;
+    }
+
+    /* Сітка товарів */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 50px 30px;
+    }
+
+    .product-item {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .img-wrapper {
+        width: 100%;
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+        background-color: #fafafa;
+        border-radius: 15px;
+    }
+
+    .product-img {
+        max-width: 85%;
+        max-height: 85%;
+        object-fit: contain;
+    }
+
+    .product-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .product-price {
+        font-size: 1.8rem;
+        font-weight: 900;
+        margin-bottom: 20px;
+    }
+
+    .btn-view {
+        background-color: #111;
+        color: #fff;
+        padding: 15px;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+
+    .btn-view:hover {
+        background-color: #333;
+        color: #fff;
+    }
+
+    /* Нижня панель (як у реєстрації) */
+    .description-footer {
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        padding: 50px;
+        text-align: center;
+    }
+</style>
+
+<div class="main-window-container">
+    <div class="white-window shadow-lg">
+
+        <div class="content-padding">
+            <h1 class="catalog-header">КАТАЛОГ</h1>
+
+            <!-- Фільтр -->
+            <div class="filter-wrapper">
+                <form method="get" class="filter-form">
+                    <select name="category" class="filter-select">
+                        <option value="">Усі категорії</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-search">ШУКАТИ</button>
+                </form>
+            </div>
+
+            <!-- Товари -->
+            <div class="products-grid">
+                {% for product in products %}
+                    <div class="product-item">
+                        <div class="img-wrapper">
+                            {% if product.photo %}
+                                <img src="{{ product.photo.url }}" class="product-img" alt="{{ product.title }}">
+                            {% else %}
+                                <div class="text-muted">Немає фото</div>
+                            {% endif %}
+                        </div>
+                        <h2 class="product-title">{{ product.title }}</h2>
+                        <p class="product-price">{{ product.price }} грн</p>
+                        <a href="{% url 'storeapp:product_detail' product.pk %}" class="btn-view">ПЕРЕГЛЯНУТИ</a>
+
+                        {% if user.is_superuser %}
+                            <a href="{% url 'storeapp:product_update' product.pk %}" style="color: #b8860b; font-size: 0.8rem; margin-top: 10px; text-decoration: none;">Редагувати ✎</a>
                         {% endif %}
-                    >
-                        {{ category.title }}
-                    </option>
+                    </div>
                 {% endfor %}
-
-            </select>
+            </div>
         </div>
 
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">
-                Фільтр
-            </button>
+        <!-- Футер вікна -->
+        <div class="description-footer">
+            <h3 class="fw-bold mb-3">Наші пропозиції</h3>
+            <p class="fs-5 text-muted mx-auto" style="max-width: 900px;">
+                Ми зібрали найкращі товари для вашої продуктивності. Від фірмових блокнотів до професійного приладдя — все, що потрібно для натхнення, знаходиться тут.
+            </p>
         </div>
 
     </div>
-</form>
-
-<!-- СПИСОК ПРОДУКТІВ -->
-<div class="row">
-
-    {% for product in products %}
-        <div class="col-md-4 mb-4">
-
-            <div class="card h-100">
-
-                {% if product.photo %}
-                    <img src="{{ product.photo.url }}" class="card-img-top" alt="{{ product.title }}">
-                {% endif %}
-
-                <div class="card-body">
-                    <h5 class="card-title">{{ product.title }}</h5>
-
-                    <p class="card-text">
-                        {{ product.description|truncatewords:15 }}
-                    </p>
-
-                    <p>
-                        <strong>Ціна:</strong> {{ product.price }} грн
-                    </p>
-
-                    <p>
-                        <strong>Категорія:</strong>
-                        {{ product.category.title|default:"-" }}
-                    </p>
-
-                </div>
-
-                <div class="card-footer d-flex justify-content-between">
-
-                    <a href="{% url 'storeapp:product_detail' product.pk %}" class="btn btn-sm btn-outline-primary">
-                        Детальніше
-                    </a>
-
-                    <a href="{% url 'storeapp:product_update' product.pk %}" class="btn btn-sm btn-warning">
-                        Edit
-                    </a>
-
-                    <a href="{% url 'storeapp:product_delete' product.pk %}" class="btn btn-sm btn-danger">
-                        Delete
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-    {% empty %}
-        <p>Продуктів немає</p>
-    {% endfor %}
-
 </div>
-
 {% endblock %}

@@ -8,7 +8,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def profile_view(request):
+    # Цей код виконається, тільки якщо користувач залогінений
+    return render(request, 'storeapp/profile.html')
+
+@login_required
+def product_list(request):
+    # Тепер і список товарів побачать тільки "свої"
+    return render(request, 'storeapp/product_list.html')
 class ProductListView(ListView):
     model = Product
     template_name = "storeapp/Product/Product_List.html"
@@ -175,7 +185,7 @@ class CustomLogoutView(LogoutView):
 
 
 class RegisterView(CreateView):
-    template_name = "storeapp/Additional/register.html"
+    template_name = "storeapp/Additioфnal/register.html"
     form_class = UserCreationForm
 
     def form_valid(self, form):
