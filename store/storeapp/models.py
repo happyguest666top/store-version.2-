@@ -10,7 +10,7 @@ class Category(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('category_detail', args=[str(self.id)])
+        return reverse('storeapp:category_detail', args=[str(self.id)])
 
 
 class Manufacturer(models.Model):
