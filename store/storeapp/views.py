@@ -126,10 +126,15 @@ class ManufacturerDeleteView(SuccessUrlManufacturerMixin, DeleteView):
     success_url = reverse_lazy("storeapp:manufacturer_list")
 
 
-class OrderListView(ListView):
+class OrderListView(LoginRequiredMixin, ListView):
     model = Order
     template_name = "storeapp/Order/Order_List.html"
     context_object_name = "orders"
+
+    def get_queryset(self):
+        return Order.objects.filter(
+            user=self.request.user
+        ).exclude(status='incart').order_by('-id')
 
 
 class OrderDetailView(DetailView):
@@ -138,11 +143,29 @@ class OrderDetailView(DetailView):
     context_object_name = "order"
 
 
-class OrderCreateView(CreateUpdateMixin, SuccessUrlOrderMixin, CreateView):
+class OrderCreateView(LoginRequiredMixin, CreateView):
     model = Order
-    fields = "__all__"
+    fields = ['product', 'amount', 'status']  # Вкажи поля, які реально є в моделі Order
     template_name = "storeapp/Order/Order_Create.html"
-    success_url = reverse_lazy("storeapp:order_list")
+
+    def form_valid(self, form):
+        # Обов'язково прив'язуємо юзера, щоб не було помилки бази даних
+        form.instance.user = self.request.user
+
+        # Якщо статус 'incart', міняємо на 'pending', щоб воно з'явилося в замовленнях
+        if form.instance.status == 'incart':
+            form.instance.status = 'pending'
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Цей метод — це "залізобетонний" редирект.
+        # Він ігнорує всі змінні success_url і міксини.
+        return reverse_lazy('storeapp:order_list')
+
+    # Додаємо обробку POST вручну на всяк випадок, щоб уникнути 405
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 class OrderUpdateView(CreateUpdateMixin, SuccessUrlOrderMixin, UpdateView):
@@ -192,8 +215,21 @@ class AddToCartView(LoginRequiredMixin, View):
             order_product.amount += 1
             order_product.save()
 
-        # Повертаємо користувача на сторінку, з якої він прийшов, або в кошик
-        return redirect(request.META.get('HTTP_REFERER', 'storeapp:product_list'))
+        # ЗМІНЕНО: тепер перекидає в кошик
+        return redirect('storeapp:cart')
+
+
+class RemoveFromCartView(LoginRequiredMixin, View):
+    """Нова в'юшка для видалення товару з кошика"""
+    def post(self, request, item_id):
+        cart_item = get_object_or_404(
+            Order_product,
+            id=item_id,
+            order__user=request.user,
+            order__status="incart"
+        )
+        cart_item.delete()
+        return redirect('storeapp:cart')
 
 
 class CartView(LoginRequiredMixin, ListView):
@@ -242,3 +278,15 @@ class RegisterView(CreateView):
         user = form.save()
         login(self.request, user)
         return redirect(reverse_lazy("storeapp:login"))
+
+
+class CheckoutView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        # Логіка зміни статусу замовлення...
+        order = Order.objects.filter(user=request.user, status="incart").first()
+        if order:
+            order.status = "pending"
+            order.save()
+
+        # Перенаправлення на сторінку "Мої замовлення"
+        return redirect('storeapp:order_list')

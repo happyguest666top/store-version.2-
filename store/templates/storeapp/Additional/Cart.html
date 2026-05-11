@@ -1,10 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% load static %}
 
-</body>
-</html>
+{% block title %}Ваш кошик | SHOP{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="cart-window">
+        <h1 class="cart-header">Мій Кошик</h1>
+
+        <div class="cart-items-list">
+            {% for item in cart_items %}
+            <div class="cart-item">
+                <!-- Фото -->
+                <div class="cart-item-img shadow-sm">
+                    {% if item.product.photo %}
+                        <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}">
+                    {% else %}
+                        <div class="h-100 d-flex align-items-center justify-content-center small text-muted">No photo</div>
+                    {% endif %}
+                </div>
+
+                <!-- Назва та Ціна -->
+                <div class="cart-item-info">
+                    <h3 class="cart-item-title">{{ item.product.title }}</h3>
+                    <p class="text-muted small mb-1">{{ item.product.category.title }}</p>
+                    <span class="cart-item-price">{{ item.product.price }} грн</span>
+                </div>
+
+                <!-- Кількість -->
+                <div class="mx-4">
+                    <div class="quantity-control">
+                        <button type="button" class="btn-qty">-</button>
+                        <span class="fw-bold fs-5 px-2">{{ item.amount }}</span>
+                        <button type="button" class="btn-qty">+</button>
+                    </div>
+                </div>
+
+                <!-- Кнопка видалення (ОНОВЛЕНО ТА ДОДАНО ФОРМУ) -->
+                <div class="text-end">
+                    <form action="{% url 'storeapp:remove_from_cart' item.id %}" method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Видалити цей товар?')">
+                            <i class="bi bi-trash3-fill me-1"></i> Видалити
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="bi bi-cart-x display-1 text-muted opacity-25"></i>
+                <h2 class="mt-4 fw-bold">Ваш кошик порожній</h2>
+                <a href="{% url 'storeapp:product_list' %}" class="btn btn-dark rounded-pill px-5 mt-3">Перейти до покупок</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if cart_items %}
+        <!-- Підсумок -->
+        <div class="cart-summary">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h4 class="fw-bold mb-3">Примітка до замовлення</h4>
+                    <textarea class="form-control rounded-4 border-0 p-3 shadow-sm" placeholder="Додайте побажання або адресу доставки..." rows="3"></textarea>
+                </div>
+                <div class="col-lg-6 mt-4 mt-lg-0">
+                    <div class="summary-row">
+                        <span class="text-muted">Товарів у кошику:</span>
+                        <span class="fw-bold">{{ cart_items.count }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="text-muted">Доставка:</span>
+                        <span class="fw-bold text-success">Безкоштовно</span>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span>Разом:</span>
+                        <!-- Сума рахується методом у моделі Order -->
+                        <span>{{ cart_items.first.order.get_total_price }} грн</span>
+                    </div>
+
+                    <form action="#" method="POST" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-checkout">Оформити замовлення</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

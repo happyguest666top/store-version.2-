@@ -1,15 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-{% for product in products %}
-{{product}}
-{% empty %}
-ще немає виробника
-{% endfor %}
+{% extends "base.html" %}
+{% load static %}
 
-</body>
-</html>
+{% block title %}Наші виробники | SHOP{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/manufacturer_list.css' %}">
+    <!-- Підключаємо іконки для адрес та телефонів -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="main-window-container">
+    <div class="manufacturer-window">
+
+        <h1 class="m-header">Наші партнери</h1>
+
+        <div class="row g-4">
+            {% for manufacturer in manufacturers %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="manufacturer-card">
+                    <h2 class="m-title">{{ manufacturer.title }}</h2>
+
+                    <div class="m-info-item">
+                        <i class="bi bi-telephone-fill m-icon"></i>
+                        <div>
+                            <span class="m-label">Контактний телефон</span>
+                            <span class="m-text">{{ manufacturer.phone_number }}</span>
+                        </div>
+                    </div>
+
+                    <div class="m-info-item">
+                        <i class="bi bi-geo-alt-fill m-icon"></i>
+                        <div>
+                            <span class="m-label">Офіс / Склад</span>
+                            <span class="m-text">{{ manufacturer.address }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-grid gap-2">
+                        <a href="{% url 'storeapp:manufacturer_detail' manufacturer.pk %}" class="btn-m-detail">
+                            Профіль виробника
+                        </a>
+
+                        {% if user.is_superuser %}
+                        <div class="d-flex justify-content-center gap-3 mt-2">
+                            <a href="{% url 'storeapp:manufacturer_update' manufacturer.pk %}" class="text-warning small text-decoration-none">
+                                <i class="bi bi-pencil"></i> Редагувати
+                            </a>
+                            <a href="{% url 'storeapp:manufacturer_delete' manufacturer.pk %}" class="text-danger small text-decoration-none">
+                                <i class="bi bi-trash"></i> Видалити
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <h3 class="text-muted">Список виробників поки порожній</h3>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
