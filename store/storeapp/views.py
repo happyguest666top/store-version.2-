@@ -142,30 +142,33 @@ class OrderDetailView(DetailView):
     template_name = "storeapp/Order/Order_Detail.html"
     context_object_name = "order"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-class OrderCreateView(LoginRequiredMixin, CreateView):
-    model = Order
-    fields = ['product', 'amount', 'status']  # Вкажи поля, які реально є в моделі Order
-    template_name = "storeapp/Order/Order_Create.html"
+        context['items'] = Order_product.objects.filter(
+            order=self.object
+        )
 
-    def form_valid(self, form):
-        # Обов'язково прив'язуємо юзера, щоб не було помилки бази даних
-        form.instance.user = self.request.user
+        return context
 
-        # Якщо статус 'incart', міняємо на 'pending', щоб воно з'явилося в замовленнях
-        if form.instance.status == 'incart':
-            form.instance.status = 'pending'
+class SecretView(LoginRequiredMixin, TemplateView):
+    template_name = "storeapp/Additional/secret.html"
 
-        return super().form_valid(form)
 
-    def get_success_url(self):
-        # Цей метод — це "залізобетонний" редирект.
-        # Він ігнорує всі змінні success_url і міксини.
-        return reverse_lazy('storeapp:order_list')
+class OrderCreateView(LoginRequiredMixin, View):
 
-    # Додаємо обробку POST вручну на всяк випадок, щоб уникнути 405
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+
+        order = Order.objects.filter(
+            user=request.user,
+            status="incart"
+        ).first()
+
+        if order:
+            order.status = "pending"
+            order.save()
+
+        return redirect('storeapp:order_list')
 
 
 class OrderUpdateView(CreateUpdateMixin, SuccessUrlOrderMixin, UpdateView):
@@ -179,6 +182,20 @@ class OrderDeleteView(SuccessUrlOrderMixin, DeleteView):
     model = Order
     template_name = "storeapp/Order/Order_Delete.html"
     success_url = reverse_lazy("storeapp:order_list")
+
+class CancelOrderView(LoginRequiredMixin, View):
+
+    def post(self, request, pk, *args, **kwargs):
+
+        order = get_object_or_404(
+            Order,
+            id=pk,
+            user=request.user
+        )
+
+        order.delete()
+
+        return redirect('storeapp:order_list')
 
 
 class HomeView(TemplateView):
@@ -290,3 +307,5 @@ class CheckoutView(LoginRequiredMixin, View):
 
         # Перенаправлення на сторінку "Мої замовлення"
         return redirect('storeapp:order_list')
+
+

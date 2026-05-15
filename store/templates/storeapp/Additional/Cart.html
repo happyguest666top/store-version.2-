@@ -83,9 +83,12 @@
                         <span>{{ cart_items.first.order.get_total_price }} грн</span>
                     </div>
 
-                    <form action="#" method="POST" class="mt-4">
+                    <form method="post" action="{% url 'storeapp:order_create' %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn-checkout">Оформити замовлення</button>
+
+                        <button type="submit">
+                            Підтвердити замовлення
+                        </button>
                     </form>
                 </div>
             </div>

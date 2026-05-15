@@ -1,10 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вхід та Профіль</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 330px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
+        .login-btn { background: #007bff; }
+        .login-btn:hover { background: #0056b3; }
+        .logout-btn { background: #ff4d4d; }
+        .logout-btn:hover { background: #e04343; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; background: #007bff; color: white; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; }
+        .bio-section { background: #f9f9f9; padding: 15px; border-radius: 8px; font-size: 14px; color: #444; text-align: left; border-left: 4px solid #007bff; margin-bottom: 20px; }
+    </style>
 </head>
 <body>
 
-</body>
-</html>
+<div class="box" id="loginBlock">
+    <h2>Вхід в систему</h2>
+    <input type="text" id="loginName" placeholder="Твоє Ім'я" required>
+    <input type="email" id="loginEmail" placeholder="Твій Email" required>
+    <input type="text" id="loginBio" placeholder="Про себе">
+    <button class="login-btn" onclick="login()">Увійти в акаунт</button>
+</div>
+
+<div class="box" id="profileBlock" style="display: none;">
+    <div class="avatar" id="userAvatar">?</div>
+    <h2 id="userName">Ім'я</h2>
+    <p id="userEmail" style="color: #666; font-size: 14px; margin-bottom: 20px;">Email</p>
+
+    <div class="bio-section">
+        <strong>Інформація:</strong>
+        <p id="userBio" style="margin: 5px 0 0 0;"></p>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">Вийти</button>
+</div>
+
+<script>
+    // Функція, яка запускається при завантаженні сторінки
+    document.addEventListener("DOMContentLoaded", function() {
+        checkAuth();
+    });
+
+    // Перевірка, чи увійшов користувач
+    function checkAuth() {
+        const user = JSON.parse(localStorage.getItem("myUserSession"));
+
+        if (user) {
+            // Якщо увійшов: ховаємо вхід, показуємо профіль і заповнюємо дані
+            document.getElementById("loginBlock").style.display = "none";
+            document.getElementById("profileBlock").style.display = "block";
+
+            document.getElementById("userName").innerText = user.name;
+            document.getElementById("userEmail").innerText = user.email;
+            document.getElementById("userBio").innerText = user.bio || "Опис відсутній.";
+            document.getElementById("userAvatar").innerText = user.name.charAt(0).toUpperCase();
+        } else {
+            // Якщо не увійшов: показуємо форму входу, ховаємо профіль
+            document.getElementById("loginBlock").style.display = "block";
+            document.getElementById("profileBlock").style.display = "none";
+        }
+    }
+
+    // Логіка натискання на кнопку "Увійти"
+    function login() {
+        const name = document.getElementById("loginName").value;
+        const email = document.getElementById("loginEmail").value;
+        const bio = document.getElementById("loginBio").value;
+
+        if (!name || !email) {
+            alert("Будь ласка, заповни ім'я та email!");
+            return;
+        }
+
+        const userData = { name, email, bio };
+        localStorage.setItem("myUserSession", JSON.stringify(userData)); // Зберігаємо в браузер
+
+        checkAuth(); // Оновлюємо інтерфейс
+    }
+
+    // Логіка натискання на кнопку "Вийти"
+    function logout() {
+        localStorage.
