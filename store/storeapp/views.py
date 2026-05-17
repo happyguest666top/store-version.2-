@@ -45,11 +45,15 @@ class ProductCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProduct
     success_url = reverse_lazy("storeapp:product_list")
 
 
+# =====================================================================
+# ОНОВЛЕНИЙ КЛАС РЕДАГУВАННЯ ТОВАРУ
+# =====================================================================
 class ProductUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProductMixin, UpdateView):
     model = Product
-    fields = "__all__"
+    fields = "__all__"  # Виводить усі поля моделі (назву, ціну, фото, категорію) у твій шаблон
     template_name = "storeapp/Product/Product_Update.html"
     success_url = reverse_lazy("storeapp:product_list")
+# =====================================================================
 
 
 class ProductDeleteView(AdminRequiredMixin, SuccessUrlProductMixin, DeleteView):
@@ -70,7 +74,6 @@ class CategoryDetailView(DetailView):
     context_object_name = "category"
 
     def get_queryset(self):
-        # Додаємо кількість продуктів у кожній категорії
         return Category.objects.annotate(product_count=Count('product'))
 
 
@@ -144,30 +147,20 @@ class OrderDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        context['items'] = Order_product.objects.filter(
-            order=self.object
-        )
-
+        context['items'] = Order_product.objects.filter(order=self.object)
         return context
+
 
 class SecretView(LoginRequiredMixin, TemplateView):
     template_name = "storeapp/Additional/secret.html"
 
 
 class OrderCreateView(LoginRequiredMixin, View):
-
     def post(self, request, *args, **kwargs):
-
-        order = Order.objects.filter(
-            user=request.user,
-            status="incart"
-        ).first()
-
+        order = Order.objects.filter(user=request.user, status="incart").first()
         if order:
             order.status = "pending"
             order.save()
-
         return redirect('storeapp:order_list')
 
 
@@ -183,18 +176,11 @@ class OrderDeleteView(SuccessUrlOrderMixin, DeleteView):
     template_name = "storeapp/Order/Order_Delete.html"
     success_url = reverse_lazy("storeapp:order_list")
 
+
 class CancelOrderView(LoginRequiredMixin, View):
-
     def post(self, request, pk, *args, **kwargs):
-
-        order = get_object_or_404(
-            Order,
-            id=pk,
-            user=request.user
-        )
-
+        order = get_object_or_404(Order, id=pk, user=request.user)
         order.delete()
-
         return redirect('storeapp:order_list')
 
 
@@ -210,40 +196,26 @@ class HomeView(TemplateView):
 
 class AddToCartView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        # Отримуємо ID продукту з URL
         product_id = self.kwargs.get('product_id')
         product = get_object_or_404(Product, id=product_id)
+        quantity = int(request.POST.get('quantity', 1))
 
-        # Знаходимо або створюємо кошик (Order зі статусом 'incart')
-        order, created = Order.objects.get_or_create(
-            user=request.user,
-            status="incart"
-        )
-
-        # Знаходимо або створюємо запис про товар у цьому замовленні
+        order, created = Order.objects.get_or_create(user=request.user, status="incart")
         order_product, created = Order_product.objects.get_or_create(
-            order=order,
-            product=product,
-            defaults={'amount': 1}
+            order=order, product=product, defaults={'amount': quantity}
         )
 
-        # Якщо товар вже був у кошику — збільшуємо кількість
         if not created:
-            order_product.amount += 1
-            order_product.save()
+            order_product.amount = quantity
+        order_product.save()
 
-        # ЗМІНЕНО: тепер перекидає в кошик
         return redirect('storeapp:cart')
 
 
 class RemoveFromCartView(LoginRequiredMixin, View):
-    """Нова в'юшка для видалення товару з кошика"""
     def post(self, request, item_id):
         cart_item = get_object_or_404(
-            Order_product,
-            id=item_id,
-            order__user=request.user,
-            order__status="incart"
+            Order_product, id=item_id, order__user=request.user, order__status="incart"
         )
         cart_item.delete()
         return redirect('storeapp:cart')
@@ -255,21 +227,15 @@ class CartView(LoginRequiredMixin, ListView):
     context_object_name = "cart_items"
 
     def get_queryset(self):
-        # Фільтруємо товари в кошику саме для поточного юзера
-        return Order_product.objects.filter(
-            order__user=self.request.user,
-            order__status="incart"
-        )
+        return Order_product.objects.filter(order__user=self.request.user, order__status="incart")
+
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "storeapp/Additional/Profile.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Отримуємо всі замовлення користувача, крім поточного кошика
-        context['orders'] = Order.objects.filter(
-            user=self.request.user
-        ).exclude(status='incart')
+        context['orders'] = Order.objects.filter(user=self.request.user).exclude(status='incart')
         return context
 
 
@@ -299,13 +265,8 @@ class RegisterView(CreateView):
 
 class CheckoutView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        # Логіка зміни статусу замовлення...
         order = Order.objects.filter(user=request.user, status="incart").first()
         if order:
             order.status = "pending"
             order.save()
-
-        # Перенаправлення на сторінку "Мої замовлення"
         return redirect('storeapp:order_list')
-
-

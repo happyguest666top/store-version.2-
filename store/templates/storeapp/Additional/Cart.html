@@ -4,7 +4,7 @@
 {% block title %}Ваш кошик | SHOP{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+    <link class="main-stylesheet" rel="stylesheet" href="{% static 'css/cart.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 {% endblock %}
 
@@ -15,37 +15,38 @@
 
         <div class="cart-items-list">
             {% for item in cart_items %}
-            <div class="cart-item">
-                <!-- Фото -->
-                <div class="cart-item-img shadow-sm">
+            <div class="cart-item d-flex align-items-center justify-content-between p-3 mb-3 bg-white shadow-sm rounded-4" style="border: 1px solid #f1f3f5;">
+                <div class="cart-item-img shadow-sm rounded-3 overflow-hidden" style="width: 80px; height: 80px; background: #f8f9fa;">
                     {% if item.product.photo %}
-                        <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}">
+                        <img src="{{ item.product.photo.url }}" alt="{{ item.product.title }}" class="w-100 h-100 object-fit-contain p-2">
                     {% else %}
                         <div class="h-100 d-flex align-items-center justify-content-center small text-muted">No photo</div>
                     {% endif %}
                 </div>
 
-                <!-- Назва та Ціна -->
-                <div class="cart-item-info">
-                    <h3 class="cart-item-title">{{ item.product.title }}</h3>
-                    <p class="text-muted small mb-1">{{ item.product.category.title }}</p>
-                    <span class="cart-item-price">{{ item.product.price }} грн</span>
+                <div class="cart-item-info flex-grow-1 ms-3">
+                    <h4 class="cart-item-title fw-bold mb-1" style="font-size: 1.1rem; color: #212529;">
+                        {{ item.product.title }}
+                    </h4>
+                    <p class="text-muted small mb-1">
+                        {{ item.product.category.title }}
+                    </p>
+                    <span class="cart-item-price fw-bold text-dark">
+                        {{ item.product.price }} грн
+                    </span>
                 </div>
 
-                <!-- Кількість -->
-                <div class="mx-4">
-                    <div class="quantity-control">
-                        <button type="button" class="btn-qty">-</button>
-                        <span class="fw-bold fs-5 px-2">{{ item.amount }}</span>
-                        <button type="button" class="btn-qty">+</button>
-                    </div>
+                <div class="mx-4 text-center">
+                    <span class="text-muted small d-block mb-1 fw-bold">Кількість</span>
+                    <span class="badge bg-dark rounded-pill px-3 py-2 fs-6 fw-bold shadow-sm">
+                        {{ item.amount }} шт
+                    </span>
                 </div>
 
-                <!-- Кнопка видалення (ОНОВЛЕНО ТА ДОДАНО ФОРМУ) -->
                 <div class="text-end">
                     <form action="{% url 'storeapp:remove_from_cart' item.id %}" method="POST" style="display:inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Видалити цей товар?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onclick="return confirm('Видалити цей товар?')">
                             <i class="bi bi-trash3-fill me-1"></i> Видалити
                         </button>
                     </form>
@@ -55,39 +56,43 @@
             <div class="text-center py-5">
                 <i class="bi bi-cart-x display-1 text-muted opacity-25"></i>
                 <h2 class="mt-4 fw-bold">Ваш кошик порожній</h2>
-                <a href="{% url 'storeapp:product_list' %}" class="btn btn-dark rounded-pill px-5 mt-3">Перейти до покупок</a>
+                <a href="{% url 'storeapp:product_list' %}" class="btn btn-dark rounded-pill px-5 mt-3 fw-bold">Перейти до покупок</a>
             </div>
             {% endfor %}
         </div>
 
         {% if cart_items %}
-        <!-- Підсумок -->
-        <div class="cart-summary">
-            <div class="row">
+        <div class="cart-summary mt-5">
+            <div class="row g-4">
                 <div class="col-lg-6">
-                    <h4 class="fw-bold mb-3">Примітка до замовлення</h4>
-                    <textarea class="form-control rounded-4 border-0 p-3 shadow-sm" placeholder="Додайте побажання або адресу доставки..." rows="3"></textarea>
+                    <h4 class="fw-bold mb-3" style="color: #212529;">Примітка до замовлення</h4>
+                    <textarea class="form-control rounded-4 border-0 p-3 shadow-sm" placeholder="Додайте побажання або адресу доставки..." rows="3" style="background: #f8f9fa; resize: none; border: 1px solid #eee !important;"></textarea>
                 </div>
                 <div class="col-lg-6 mt-4 mt-lg-0">
-                    <div class="summary-row">
-                        <span class="text-muted">Товарів у кошику:</span>
-                        <span class="fw-bold">{{ cart_items.count }}</span>
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="text-muted fw-bold">Товарів у кошику:</span>
+                        <span class="fw-bold text-dark">{{ cart_items.count }}</span>
                     </div>
-                    <div class="summary-row">
-                        <span class="text-muted">Доставка:</span>
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="text-muted fw-bold">Доставка:</span>
                         <span class="fw-bold text-success">Безкоштовно</span>
                     </div>
-                    <div class="summary-row total-row">
-                        <span>Разом:</span>
-                        <!-- Сума рахується методом у моделі Order -->
-                        <span>{{ cart_items.first.order.get_total_price }} грн</span>
+                    <hr class="my-3">
+                    <div class="summary-row total-row d-flex justify-content-between align-items-center mb-4">
+                        <span class="fs-4 fw-bold" style="color: #212529;">Разом:</span>
+                        <span class="fs-3 fw-bold text-dark">
+                            {% if cart_items.first.order %}
+                                {{ cart_items.first.order.get_total_price }}
+                            {% else %}
+                                0
+                            {% endif %} грн
+                        </span>
                     </div>
 
                     <form method="post" action="{% url 'storeapp:order_create' %}">
                         {% csrf_token %}
-
-                        <button type="submit">
-                            Підтвердити замовлення
+                        <button type="submit" class="btn btn-dark rounded-pill py-3 fw-bold shadow-sm w-100" style="letter-spacing: 0.5px;">
+                            ПІДТВЕРДИТИ ЗАМОВЛЕННЯ
                         </button>
                     </form>
                 </div>
