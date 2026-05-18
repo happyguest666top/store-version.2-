@@ -14,16 +14,13 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 
 
-# =====================================================================
-# РОЗУМНИЙ КЛАС: АВТОМАТИЧНО СТВОРЮЄ ТА ПРИВ'ЯЗУЄ ІДЕАЛЬНІ КАТЕГОРІЇ
-# =====================================================================
 class ProductListView(ListView):
     model = Product
     template_name = "storeapp/Product/Product_List.html"
     context_object_name = "products"
 
     def get_queryset(self):
-        # 1. Спершу автоматично створюємо правильні категорії в базі даних
+
         categories_map = {
             "Письмове приладдя": ["ручк", "олівец", "рука", "pen", "pencil"],
             "Маркери та виділювачі": ["маркер", "виділювач", "marker", "textmarker", "хайлайтер"],
@@ -36,16 +33,16 @@ class ProductListView(ListView):
             cat, created = Category.objects.get_or_create(title=cat_name)
             created_categories[cat_name] = cat
 
-        # Категорія за замовчуванням, якщо товар не підійшов ні під один опис
+
         default_cat, created = Category.objects.get_or_create(title="Інші товари")
 
-        # 2. Скануємо назви товарів і залізобетонно даємо їм правильну категорію
+
         all_products = Product.objects.all()
         for prod in all_products:
             title_lower = prod.title.lower() if prod.title else ""
             assigned = False
 
-            # Шукаємо ключові слова у назві товару
+
             for cat_name, keywords in categories_map.items():
                 if any(keyword in title_lower for keyword in keywords):
                     prod.category = created_categories[cat_name]
@@ -53,16 +50,16 @@ class ProductListView(ListView):
                     assigned = True
                     break
 
-            # Якщо ключових слів немає, даємо базову категорію "Письмове приладдя" або "Інші товари"
+
             if not assigned:
                 if prod.id == 2 or "набір" in title_lower:
-                    # Твій товар №2 (маркери) точно отримає категорію маркерів
+
                     prod.category = created_categories["Маркери та виділювачі"]
                 else:
                     prod.category = created_categories["Письмове приладдя"]
                 prod.save()
 
-        # 3. Звичайна фільтрація при виборі категорії на сайті
+
         queryset = Product.objects.all()
         category_id = self.request.GET.get('category')
 
@@ -73,7 +70,7 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Передаємо на сайт тільки ті категорії, в яких реально є товари
+
         context['categories'] = Category.objects.annotate(prod_count=Count('product')).filter(prod_count__gt=0)
         return context
 
