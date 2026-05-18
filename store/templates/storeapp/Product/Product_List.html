@@ -5,21 +5,62 @@
 
 {% block extra_head %}
 <link class="main-stylesheet" rel="stylesheet" href="{% static 'css/product_list.css' %}">
+<style>
+    /* Стильні темно-сірі кнопки під колір шапки сайту */
+    .btn-dark-window {
+        background-color: #212529 !important;
+        color: #ffffff !important;
+        border: 1px solid #212529 !important;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-dark-window:hover {
+        background-color: #343a40 !important;
+        border-color: #343a40 !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Кнопка редагування (контурна, теж у колір віконця) */
+    .btn-edit-window {
+        background: none !important;
+        border: 1px solid #212529 !important;
+        color: #212529 !important;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-edit-window:hover {
+        background-color: #212529 !important;
+        color: #ffffff !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="main-window-container">
     <div class="white-window shadow-2xl">
         <div class="content-padding px-4 px-md-5 py-5">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
+
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center align-items-start mb-5 gap-3">
                 <div class="text-center text-md-start">
                     <h1 class="catalog-header mb-1">Світ Канцелярії</h1>
                     <p class="text-muted fw-normal mb-0">Професійне приладдя для офісу, навчання та творчості</p>
                 </div>
+
+                <div class="w-100 w-md-auto">
+                    <form method="get" action="{% url 'storeapp:product_list' %}" class="d-flex gap-2">
+                        <select name="category" class="form-select rounded-pill px-3" style="min-width: 250px; border: 1px solid #ced4da;">
+                            <option value="">Всі категорії</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ cat.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit" class="btn btn-dark rounded-pill px-4">Шукати</button>
+                    </form>
+                </div>
             </div>
 
             <div class="row g-4 products-grid">
-                <!-- Товари 1-5 з бази -->
                 {% for p in products %}
                     <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
                         <div class="product-item">
@@ -30,85 +71,24 @@
                                 <h2 class="product-title">{{ p.title }}</h2>
                                 <p class="product-price mb-3">{{ p.price }} грн</p>
                                 <div class="d-grid gap-2">
-                                    <a href="{% url 'storeapp:product_detail' p.id %}" class="btn-view text-center text-decoration-none">Детальніше</a>
+                                    <a href="{% url 'storeapp:product_detail' p.id %}" class="btn btn-dark-window text-center text-decoration-none rounded-3 py-2 fw-medium">Детальніше</a>
+
                                     {% if user.is_superuser %}
-                                        <a href="{% url 'storeapp:product_update' p.id %}" class="text-warning text-center small text-decoration-none mt-2">Редагувати</a>
+                                        <a href="{% url 'storeapp:product_update' p.id %}" class="btn btn-edit-window btn-sm d-block text-center mt-2 fw-medium rounded-3 py-1">
+                                            ⚙️ Редагувати
+                                        </a>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
+                {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted fs-5">У цій категорії поки що немає товарів.</p>
+                    </div>
                 {% endfor %}
-
-                <!-- Товар 6 -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                    <div class="product-item">
-                        <div class="img-wrapper shadow-sm d-flex align-items-center justify-content-center" style="background-color: #f8f9fa; height: 250px;">
-                            <img src="/media/6.png" class="product-img w-100 h-100 object-fit-contain p-3" alt="Фломастери">
-                        </div>
-                        <div class="product-info text-start">
-                            <h2 class="product-title">Набір кольорових фломастерів у пеналі</h2>
-                            <p class="product-price mb-3">295 грн</p>
-                            <div class="d-grid gap-2">
-                                <a href="/products/fake/6/" class="btn-view text-center text-decoration-none">Детальніше</a>
-                                <a href="/products/fake/6/update/" class="text-warning text-center small text-decoration-none mt-2">Редагувати</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Товар 7 -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                    <div class="product-item">
-                        <div class="img-wrapper shadow-sm d-flex align-items-center justify-content-center" style="background-color: #f8f9fa; height: 250px;">
-                            <img src="/media/im.jpg" class="product-img w-100 h-100 object-fit-contain p-3" alt="Пенал">
-                        </div>
-                        <div class="product-info text-start">
-                            <h2 class="product-title">Пенал-органайзер тканинний (Бордовий)</h2>
-                            <p class="product-price mb-3">180 грн</p>
-                            <div class="d-grid gap-2">
-                                <a href="/products/fake/7/" class="btn-view text-center text-decoration-none">Детальніше</a>
-                                <a href="/products/fake/7/update/" class="text-warning text-center small text-decoration-none mt-2">Редагувати</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Товар 8 -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                    <div class="product-item">
-                        <div class="img-wrapper shadow-sm d-flex align-items-center justify-content-center" style="background-color: #f8f9fa; height: 250px;">
-                            <img src="/media/im2.jpg" class="product-img w-100 h-100 object-fit-contain p-3" alt="Календар">
-                        </div>
-                        <div class="product-info text-start">
-                            <h2 class="product-title">Настільний календар-планер "Еко-Крафт"</h2>
-                            <p class="product-price mb-3">140 грн</p>
-                            <div class="d-grid gap-2">
-                                <a href="/products/fake/8/" class="btn-view text-center text-decoration-none">Детальніше</a>
-                                <a href="/products/fake/8/update/" class="text-warning text-center small text-decoration-none mt-2">Редагувати</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Товар 9 -->
-                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-                    <div class="product-item">
-                        <div class="img-wrapper shadow-sm d-flex align-items-center justify-content-center" style="background-color: #f8f9fa; height: 250px;">
-                            <img src="/media/images.jpg" class="product-img w-100 h-100 object-fit-contain p-3" alt="Блокнот">
-                        </div>
-                        <div class="product-info text-start">
-                            <h2 class="product-title">Записна книжка Преміум з ручкою</h2>
-                            <p class="product-price mb-3">390 грн</p>
-                            <div class="d-grid gap-2">
-                                <a href="/products/fake/9/" class="btn-view text-center text-decoration-none">Детальніше</a>
-                                <a href="/products/fake/9/update/" class="text-warning text-center small text-decoration-none mt-2">Редагувати</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
+
         </div>
     </div>
 </div>

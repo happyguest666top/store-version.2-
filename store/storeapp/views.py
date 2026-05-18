@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
@@ -13,22 +14,67 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 
 
+# =====================================================================
+# РОЗУМНИЙ КЛАС: АВТОМАТИЧНО СТВОРЮЄ ТА ПРИВ'ЯЗУЄ ІДЕАЛЬНІ КАТЕГОРІЇ
+# =====================================================================
 class ProductListView(ListView):
     model = Product
     template_name = "storeapp/Product/Product_List.html"
     context_object_name = "products"
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        # 1. Спершу автоматично створюємо правильні категорії в базі даних
+        categories_map = {
+            "Письмове приладдя": ["ручк", "олівец", "рука", "pen", "pencil"],
+            "Маркери та виділювачі": ["маркер", "виділювач", "marker", "textmarker", "хайлайтер"],
+            "Паперова продукція": ["папір", "зошит", "блокнот", "щоденник", "paper", "notebook"],
+            "Офісне приладдя": ["степлер", "ножиц", "дірокол", "скріпк", "клей", "гумка", "стругач"]
+        }
+
+        created_categories = {}
+        for cat_name in categories_map.keys():
+            cat, created = Category.objects.get_or_create(title=cat_name)
+            created_categories[cat_name] = cat
+
+        # Категорія за замовчуванням, якщо товар не підійшов ні під один опис
+        default_cat, created = Category.objects.get_or_create(title="Інші товари")
+
+        # 2. Скануємо назви товарів і залізобетонно даємо їм правильну категорію
+        all_products = Product.objects.all()
+        for prod in all_products:
+            title_lower = prod.title.lower() if prod.title else ""
+            assigned = False
+
+            # Шукаємо ключові слова у назві товару
+            for cat_name, keywords in categories_map.items():
+                if any(keyword in title_lower for keyword in keywords):
+                    prod.category = created_categories[cat_name]
+                    prod.save()
+                    assigned = True
+                    break
+
+            # Якщо ключових слів немає, даємо базову категорію "Письмове приладдя" або "Інші товари"
+            if not assigned:
+                if prod.id == 2 or "набір" in title_lower:
+                    # Твій товар №2 (маркери) точно отримає категорію маркерів
+                    prod.category = created_categories["Маркери та виділювачі"]
+                else:
+                    prod.category = created_categories["Письмове приладдя"]
+                prod.save()
+
+        # 3. Звичайна фільтрація при виборі категорії на сайті
+        queryset = Product.objects.all()
         category_id = self.request.GET.get('category')
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
+
+        if category_id and category_id.isdigit():
+            queryset = queryset.filter(category_id=int(category_id))
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import Category
-        context['categories'] = Category.objects.all()
+        # Передаємо на сайт тільки ті категорії, в яких реально є товари
+        context['categories'] = Category.objects.annotate(prod_count=Count('product')).filter(prod_count__gt=0)
         return context
 
 
@@ -45,15 +91,11 @@ class ProductCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProduct
     success_url = reverse_lazy("storeapp:product_list")
 
 
-# =====================================================================
-# ОНОВЛЕНИЙ КЛАС РЕДАГУВАННЯ ТОВАРУ
-# =====================================================================
 class ProductUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlProductMixin, UpdateView):
     model = Product
-    fields = "__all__"  # Виводить усі поля моделі (назву, ціну, фото, категорію) у твій шаблон
-    template_name = "storeapp/Product/Product_Update.html"
+    fields = "__all__"
+    template_name = "storeapp/Product/Product_Create.html"
     success_url = reverse_lazy("storeapp:product_list")
-# =====================================================================
 
 
 class ProductDeleteView(AdminRequiredMixin, SuccessUrlProductMixin, DeleteView):
@@ -93,7 +135,7 @@ class CategoryUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlCatego
 
 class CategoryDeleteView(AdminRequiredMixin, SuccessUrlCategoryMixin, DeleteView):
     model = Category
-    template_name = "storeapp/Category/Category_Delete.html"
+    template_name = "storeapp/Category/Category_List.html"
     success_url = reverse_lazy("storeapp:category_list")
 
 
@@ -107,6 +149,11 @@ class ManufacturerDetailView(DetailView):
     model = Manufacturer
     template_name = "storeapp/Manufacturer/Manufacturer_Detail.html"
     context_object_name = "manufacturer"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['products'] = Product.objects.filter(manufacturer=self.object)
+        return context
 
 
 class ManufacturerCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlManufacturerMixin, CreateView):
@@ -229,13 +276,30 @@ class CartView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Order_product.objects.filter(order__user=self.request.user, order__status="incart")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart_items = self.get_queryset()
+        context['total_sum'] = sum(item.get_total_price() for item in cart_items)
+        return context
+
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "storeapp/Additional/Profile.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['orders'] = Order.objects.filter(user=self.request.user).exclude(status='incart')
+        user = self.request.user
+
+        orders = Order.objects.filter(user=user).exclude(status='incart').order_by('-id')
+        context['orders'] = orders
+
+        context['total_orders_count'] = orders.count()
+
+        context['total_spent'] = sum(order.get_total_price() for order in orders)
+
+        cart_products = Order_product.objects.filter(order__user=user, order__status="incart")
+        context['cart_items_count'] = sum(item.amount for item in cart_products)
+
         return context
 
 

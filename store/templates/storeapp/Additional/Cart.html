@@ -31,15 +31,24 @@
                     <p class="text-muted small mb-1">
                         {{ item.product.category.title }}
                     </p>
-                    <span class="cart-item-price fw-bold text-dark">
-                        {{ item.product.price }} грн
+                    <span class="cart-item-price text-muted small">
+                        {{ item.product.price }} грн / шт
                     </span>
                 </div>
 
+                <!-- Кількість -->
                 <div class="mx-4 text-center">
                     <span class="text-muted small d-block mb-1 fw-bold">Кількість</span>
                     <span class="badge bg-dark rounded-pill px-3 py-2 fs-6 fw-bold shadow-sm">
                         {{ item.amount }} шт
+                    </span>
+                </div>
+
+                <!-- Вартість за цей вид товару (Ціна х Кількість) -->
+                <div class="mx-4 text-end" style="min-width: 100px;">
+                    <span class="text-muted small d-block mb-1 fw-bold">Сума</span>
+                    <span class="fw-bold text-dark fs-5">
+                        {{ item.get_total_price }} грн
                     </span>
                 </div>
 
@@ -80,12 +89,9 @@
                     <hr class="my-3">
                     <div class="summary-row total-row d-flex justify-content-between align-items-center mb-4">
                         <span class="fs-4 fw-bold" style="color: #212529;">Разом:</span>
+                        <!-- Виводимо загальну суму, яку передали з views.py -->
                         <span class="fs-3 fw-bold text-dark">
-                            {% if cart_items.first.order %}
-                                {{ cart_items.first.order.get_total_price }}
-                            {% else %}
-                                0
-                            {% endif %} грн
+                            {{ total_sum }} грн
                         </span>
                     </div>
 
