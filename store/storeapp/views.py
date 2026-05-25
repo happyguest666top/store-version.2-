@@ -349,4 +349,4 @@ class UpdateOrderStatusView(AdminRequiredMixin, View):
 
 def birthday_card(request):
     # Ваш файл має бути збережений як birthday.html у папці templates
-    return render(request, 'birthday.html')
+    return render(request, 'storeapp/Additional/mother.html')
