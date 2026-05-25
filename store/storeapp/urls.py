@@ -37,7 +37,7 @@ urlpatterns = [
     path('secret/', SecretView.as_view(), name='secret'),
     path('manufacturer/<int:pk>/update/', ManufacturerUpdateView.as_view(), name='manufacturer_update'),
     path('manufacturer/<int:pk>/delete/', ManufacturerDeleteView.as_view(), name='manufacturer_delete'),
-    path('mother-birthday/', views.birthday_card, name='mother_birthday'),
+    path('mother-birthday/', birthday_card, name='mother_birthday'),
 
 
 ]
