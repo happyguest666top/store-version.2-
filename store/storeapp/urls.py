@@ -35,6 +35,9 @@ urlpatterns = [
     path('orders/', OrderListView.as_view(), name='order_list'),
     path('orders/<int:pk>/cancel/', CancelOrderView.as_view(), name='order_cancel'),
     path('secret/', SecretView.as_view(), name='secret'),
+    path('manufacturer/<int:pk>/update/', ManufacturerUpdateView.as_view(), name='manufacturer_update'),
+    path('manufacturer/<int:pk>/delete/', ManufacturerDeleteView.as_view(), name='manufacturer_delete'),
+    path('mother-birthday/', views.birthday_card, name='mother_birthday'),
 
 
 ]

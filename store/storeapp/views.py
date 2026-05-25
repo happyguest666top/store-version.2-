@@ -13,6 +13,9 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from django.views import View
 
+# 🔥 ОБО'ЯЗКОВИЙ ІМПОРТ МОДЕЛІ КОРИСТУВАЧА ДЛЯ ТАБЛИЦІ В ПРОФІЛІ
+from django.contrib.auth.models import User
+
 
 class ProductListView(ListView):
     model = Product
@@ -33,15 +36,12 @@ class ProductListView(ListView):
             cat, created = Category.objects.get_or_create(title=cat_name)
             created_categories[cat_name] = cat
 
-
         default_cat, created = Category.objects.get_or_create(title="Інші товари")
-
 
         all_products = Product.objects.all()
         for prod in all_products:
             title_lower = prod.title.lower() if prod.title else ""
             assigned = False
-
 
             for cat_name, keywords in categories_map.items():
                 if any(keyword in title_lower for keyword in keywords):
@@ -50,15 +50,13 @@ class ProductListView(ListView):
                     assigned = True
                     break
 
-
             if not assigned:
                 if prod.id == 2 or "набір" in title_lower:
-
+                    # 🔥 ОНОВЛЕНО: Виправлено друкарську помилку viділювачі -> виділювачі
                     prod.category = created_categories["Маркери та виділювачі"]
                 else:
                     prod.category = created_categories["Письмове приладдя"]
                 prod.save()
-
 
         queryset = Product.objects.all()
         category_id = self.request.GET.get('category')
@@ -160,14 +158,14 @@ class ManufacturerCreateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlMa
     success_url = reverse_lazy("storeapp:manufacturer_list")
 
 
-class ManufacturerUpdateView(CreateUpdateMixin, SuccessUrlManufacturerMixin, UpdateView):
+class ManufacturerUpdateView(AdminRequiredMixin, CreateUpdateMixin, SuccessUrlManufacturerMixin, UpdateView):
     model = Manufacturer
     fields = "__all__"
     template_name = "storeapp/Manufacturer/Manufacturer_Update.html"
     success_url = reverse_lazy("storeapp:manufacturer_list")
 
 
-class ManufacturerDeleteView(SuccessUrlManufacturerMixin, DeleteView):
+class ManufacturerDeleteView(AdminRequiredMixin, SuccessUrlManufacturerMixin, DeleteView):
     model = Manufacturer
     template_name = "storeapp/Manufacturer/Manufacturer_Delete.html"
     success_url = reverse_lazy("storeapp:manufacturer_list")
@@ -179,6 +177,9 @@ class OrderListView(LoginRequiredMixin, ListView):
     context_object_name = "orders"
 
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Order.objects.exclude(status__in=['incart', 'delivered']).order_by('-id')
+
         return Order.objects.filter(
             user=self.request.user
         ).exclude(status='incart').order_by('-id')
@@ -280,6 +281,7 @@ class CartView(LoginRequiredMixin, ListView):
         return context
 
 
+# 🔥 ОНОВЛЕНО: ТЕПЕР ПЕРЕДАЄМО ALL_ORDERS ДЛЯ СУПЕРЮЗЕРА ЗАМІСТЬ КОРИСТУВАЧІВ
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "storeapp/Additional/Profile.html"
 
@@ -296,6 +298,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
         cart_products = Order_product.objects.filter(order__user=user, order__status="incart")
         context['cart_items_count'] = sum(item.amount for item in cart_products)
+
+        # Передаємо взагалі всі замовлення з бази (крім кошиків), щоб адмін бачив замовлення інших покупців
+        context['all_orders'] = Order.objects.exclude(status='incart').order_by('-id')
 
         return context
 
@@ -331,3 +336,17 @@ class CheckoutView(LoginRequiredMixin, View):
             order.status = "pending"
             order.save()
         return redirect('storeapp:order_list')
+
+
+class UpdateOrderStatusView(AdminRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        order = get_object_or_404(Order, id=pk)
+        new_status = request.POST.get('status')
+        if new_status:
+            order.status = new_status
+            order.save()
+        return redirect('storeapp:order_list')
+
+def birthday_card(request):
+    # Ваш файл має бути збережений як birthday.html у папці templates
+    return render(request, 'birthday.html')

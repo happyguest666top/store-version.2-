@@ -1,10 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Видалення замовлення | SHOP{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center py-5">
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <div class="bg-danger" style="height: 6px;"></div>
+
+                <div class="card-body p-5 text-center">
+                    <div class="text-danger mb-4">
+                        <i class="bi bi-exclamation-diamond text-danger opacity-75" style="font-size: 4.5rem;"></i>
+                    </div>
+
+                    <h3 class="fw-bold text-dark mb-2">Видалення замовлення</h3>
+                    <p class="text-muted mb-4">
+                        Ви дійсно бажаєте безповоротно видалити <span class="badge bg-light text-danger border border-danger-subtle px-2 py-1 fs-6 fw-bold">Замовлення #{{ object.id }}</span>? Цю дію не можна буде скасувати.
+                    </p>
+
+                    <form method="post" class="d-flex flex-column gap-2">
+                        {% csrf_token %}
+
+                        <button type="submit" class="btn btn-danger btn-lg rounded-pill fw-medium py-2.5 shadow-sm transition">
+                            <i class="bi bi-trash3-fill me-2"></i> Підтвердити видалення
+                        </button>
+
+                        <a href="{% url 'storeapp:order_list' %}" class="btn btn-link text-secondary text-decoration-none fw-medium mt-2">
+                            Ні, повернутися до списку
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Легкий ефект при наведенні для преміального вигляду */
+    .btn-danger {
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-danger:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3) !important;
+    }
+</style>
+{% endblock %}

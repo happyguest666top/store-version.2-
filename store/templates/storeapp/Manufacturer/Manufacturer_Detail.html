@@ -72,7 +72,9 @@
                         <div class="col-12 col-sm-6 col-md-4">
                             <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden text-center p-3" style="background-color: #f8f9fa;">
                                 <div class="d-flex align-items-center justify-content-center mb-2" style="height: 140px;">
-                                    <img src="{% if p.photo %}{{ p.photo.url }}{% else %}/media/{{ p.id }}.png{% endif %}" class="img-fluid h-100 object-fit-contain" alt="{{ p.title }}">
+                                    <img src="{% if p.photo %}{{ p.photo.url }}{% elif p.image %}{{ p.image.url }}{% else %}{% static 'img/no-image.png' %}{% endif %}"
+                                         class="img-fluid h-100 object-fit-contain"
+                                         alt="{{ p.title }}">
                                 </div>
                                 <h6 class="fw-bold text-truncate mb-1" title="{{ p.title }}">{{ p.title }}</h6>
                                 <p class="text-dark small fw-bold mb-3">{{ p.price }} грн</p>

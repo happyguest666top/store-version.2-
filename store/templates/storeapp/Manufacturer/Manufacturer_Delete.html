@@ -1,10 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% load static %}
 
-</body>
-</html>
+{% block title %}Видалити Виробника | SHOP{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white">
+                <div class="text-dark mb-3">
+                    <i class="bi bi-exclamation-triangle display-4"></i>
+                </div>
+                <h3 class="fw-bold mb-2 text-dark">Видалення виробника</h3>
+                <p class="text-muted mb-4">Ви впевнені, що хочете видалити виробника <strong>"{{ object.title }}"</strong>? Цю дію не можна буде скасувати.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="submit" class="btn btn-dark rounded-pill px-4">Так, видалити</button>
+                        <a href="{% url 'storeapp:manufacturer_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Скасувати</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

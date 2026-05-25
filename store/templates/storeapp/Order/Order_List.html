@@ -12,52 +12,75 @@
 <div class="container py-5">
     <div class="order-window">
 
-        <h1 class="order-header">Історія замовлень</h1>
+        <h1 class="order-header mb-4">
+            {% if user.is_superuser %}
+                Панель керування замовленнями (Активні)
+            {% else %}
+                Історія замовлень
+            {% endif %}
+        </h1>
 
         <div class="order-list">
             {% for order in orders %}
-            <div class="order-card">
+            <div class="order-card d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4 mb-3 border rounded shadow-sm bg-white">
 
-                <div class="d-flex align-items-center gap-4">
-                    <div class="order-icon">
-                        <i class="bi bi-box-seam fs-2"></i>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="order-icon bg-light text-secondary p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 55px; height: 55px; min-width: 55px;">
+                        <i class="bi bi-box-seam fs-3"></i>
                     </div>
-
-                    <div class="order-info">
-                        <span class="order-number">Замовлення #{{ order.id }}</span>
-                        <span class="order-date">від {{ order.created_at|date:"d.m.Y" }}</span>
+                    <div class="order-info d-flex flex-column">
+                        <span class="order-number fw-bold fs-5 text-dark">
+                            Замовлення #{{ order.id }}
+                            {% if user.is_superuser and order.user %}
+                                <small class="text-primary fw-normal fs-6">({{ order.user.username }})</small>
+                            {% endif %}
+                        </span>
+                        <span class="order-date text-muted small">від {{ order.created_at|date:"d.m.Y" }}</span>
                     </div>
                 </div>
 
-                <div>
+                <div class="order-status-block">
                     {% if order.status == "pending" %}
-                        <span class="status-badge status-pending">В очікуванні</span>
+                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-medium">В очікуванні</span>
                     {% elif order.status == "paid" %}
-                        <span class="status-badge status-paid">Оплачено</span>
+                        <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-medium">Оплачено</span>
                     {% elif order.status == "delivered" %}
-                        <span class="status-badge status-delivered">Доставлено</span>
+                        <span class="badge bg-info text-dark px-3 py-2 rounded-pill fw-medium">Доставлено</span>
                     {% else %}
-                        <span class="status-badge bg-light text-dark">{{ order.status }}</span>
+                        <span class="badge bg-light text-dark px-3 py-2 rounded-pill border">{{ order.status }}</span>
                     {% endif %}
                 </div>
 
-                <div class="order-price">
+                <div class="order-price fw-bold fs-4 text-nowrap text-dark">
                     {{ order.get_total_price }} грн
                 </div>
 
-                <div>
-                    <a href="{% url 'storeapp:order_detail' order.pk %}" class="btn-detail">
+                <div class="order-actions d-flex flex-row flex-md-column gap-2 align-items-center align-items-md-end">
+
+                    <a href="{% url 'storeapp:order_detail' order.pk %}" class="btn btn-outline-dark btn-sm rounded-pill px-4 text-nowrap">
                         Деталі <i class="bi bi-chevron-right ms-1"></i>
                     </a>
 
-                    <!-- 🔥 ДОДАНО ТІЛЬКИ ЦЕ -->
-                    <form method="post" action="{% url 'storeapp:order_cancel' order.id %}">
-                        {% csrf_token %}
+                    {% if user.is_superuser %}
+                        <a href="{% url 'storeapp:order_update' order.id %}" class="btn btn-success btn-sm rounded-pill w-100 px-3 text-nowrap mt-1">
+                            <i class="bi bi-pencil-square me-1"></i> Змінити статус
+                        </a>
 
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            Відмінити
-                        </button>
-                    </form>
+                        <a href="{% url 'storeapp:order_delete' order.id %}" class="btn btn-link text-danger btn-sm text-decoration-none p-0 border-0 bg-transparent text-nowrap shadow-none w-100 text-center text-md-end opacity-75 hover-opacity-100" style="font-size: 0.85rem;">
+                            <i class="bi bi-trash me-1"></i> Видалити
+                        </a>
+
+                    {% else %}
+                        {% if order.status == "pending" %}
+                        <form method="post" action="{% url 'storeapp:order_cancel' order.id %}" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link text-danger btn-sm text-decoration-none p-0 border-0 bg-transparent text-nowrap shadow-none" style="font-size: 0.85rem;">
+                                <i class="bi bi-x-circle me-1"></i> Скасувати
+                            </button>
+                        </form>
+                        {% endif %}
+
+                    {% endif %}
 
                 </div>
 
@@ -65,10 +88,7 @@
             {% empty %}
             <div class="text-center py-5">
                 <i class="bi bi-bag-x display-1 text-muted opacity-25"></i>
-                <h2 class="mt-4 fw-bold">У вас ще немає замовлень</h2>
-                <a href="{% url 'storeapp:product_list' %}" class="btn btn-dark rounded-pill px-5 mt-3">
-                    Почати покупки
-                </a>
+                <h2 class="mt-4 fw-bold">Активних замовлень немає</h2>
             </div>
             {% endfor %}
         </div>

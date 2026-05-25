@@ -19,11 +19,18 @@
                     <i class="bi bi-person-fill fs-1"></i>
                 </div>
                 <h3 class="fw-bold mb-1">{{ user.username }}</h3>
-                <p class="text-muted small mb-3">Покупець SHOP</p>
-                <span class="badge bg-success rounded-pill px-3 py-2">Акаунт активний</span>
+                <p class="text-muted small mb-3">
+                    {% if user.is_superuser %}Адміністратор SHOP{% else %}Покупець SHOP{% endif %}
+                </p>
+                {% if user.is_superuser %}
+                    <span class="badge bg-danger text-dark rounded-pill px-3 py-2"><i class="bi bi-shield-lock me-1"></i> Панель управління</span>
+                {% else %}
+                    <span class="badge bg-success text-dark rounded-pill px-3 py-2">Акаунт активний</span>
+                {% endif %}
             </div>
 
-            <!-- Блок статистики -->
+            <!-- Блок статистики (Динамічний: ховаємо для суперюзера, показуємо для покупця) -->
+            {% if not user.is_superuser %}
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                 <h4 class="fw-bold mb-4" style="color: #212529;">Статистика акаунта</h4>
 
@@ -57,56 +64,124 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
-        <!-- БЛОК ІСТОРІЇ ЗАМОВЛЕНЬ -->
+        <!-- БЛОК ДИНАМІЧНОГО КОНТЕНТУ -->
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-                <h4 class="fw-bold mb-4" style="color: #212529;">Історія замовлень</h4>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="border-0 rounded-start-3">№ Замовлення</th>
-                                <th scope="col" class="border-0">Статус</th>
-                                <th scope="col" class="border-0">Сума</th>
-                                <th scope="col" class="border-0 rounded-end-3">Дія</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in orders %}
-                            <tr>
-                                <td class="fw-bold">#{{ order.id }}</td>
-                                <td>
-                                    {% if order.status == 'new' or order.status == 'pending' %}
-                                        <span class="badge bg-primary rounded-pill">Нове</span>
-                                    {% elif order.status == 'processing' %}
-                                        <span class="badge bg-warning text-dark rounded-pill">В обробці</span>
-                                    {% elif order.status == 'sent' %}
-                                        <span class="badge bg-info text-dark rounded-pill">Відправлено</span>
-                                    {% elif order.status == 'completed' %}
-                                        <span class="badge bg-success rounded-pill">Завершено</span>
-                                    {% else %}
-                                        <span class="badge bg-danger rounded-pill">Скасовано</span>
-                                    {% endif %}
-                                </td>
-                                <td class="fw-bold">{{ order.get_total_price }} грн</td>
-                                <td>
-                                    <a href="{% url 'storeapp:order_detail' order.id %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">Деталі</a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">
-                                    <i class="bi bi-box-seam display-6 d-block mb-2 opacity-50"></i>
-                                    Ви ще не робили замовлень.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                {% if user.is_superuser %}
+                    <!-- ПОКАЗУЄМО ВСІ ЗАМОВЛЕННЯ ДЛЯ ВИКОНАННЯ (ДЛЯ СУПЕРЮЗЕРА) -->
+                    <h4 class="fw-bold mb-4" style="color: #212529;">
+                        <i class="bi bi-list-check me-2"></i> Замовлення покупців для виконання
+                    </h4>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="border-0 rounded-start-3">№ Замовлення</th>
+                                    <th scope="col" class="border-0">Покупець</th>
+                                    <th scope="col" class="border-0">Статус</th>
+                                    <th scope="col" class="border-0">Сума</th>
+                                    <th scope="col" class="border-0 rounded-end-3">Дія</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in all_orders %}
+                                <tr>
+                                    <td class="fw-bold">#{{ order.id }}</td>
+                                    <td>
+                                        <span class="text-dark fw-medium">
+                                            <i class="bi bi-person-circle me-1 opacity-75"></i> {{ order.user.username|default:"Гість" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <!-- 🖤 ЖОДНОГО СИНЬОГО ЕЛЕМЕНТА ДЛЯ СУПЕРЮЗЕРА -->
+                                        {% if order.status == 'new' or order.status == 'pending' %}
+                                            <span class="badge bg-light text-dark border border-dark rounded-pill">Нове / Очікує</span>
+                                        {% elif order.status == 'processing' %}
+                                            <span class="badge bg-warning text-dark rounded-pill">В обробці</span>
+                                        {% elif order.status == 'sent' %}
+                                            <span class="badge bg-secondary text-dark rounded-pill" style="background-color: #ced4da !important;">Відправлено</span>
+                                        {% elif order.status == 'completed' or order.status == 'delivered' %}
+                                            <span class="badge bg-success text-dark rounded-pill">Виконано</span>
+                                        {% else %}
+                                            <span class="badge bg-danger text-dark rounded-pill">{{ order.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold text-dark">{{ order.get_total_price }} грн</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{% url 'storeapp:order_detail' order.id %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">Деталі</a>
+                                            <a href="{% url 'storeapp:order_update' order.id %}" class="btn btn-sm btn-success rounded-pill px-2" title="Змінити статус">
+                                                <i class="bi bi-pencil-square text-dark"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="bi bi-check2-circle display-6 d-block mb-2 text-success opacity-50"></i>
+                                        Немає замовлень, що потребують виконання.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                {% else %}
+                    <!-- ПОКАЗУЄМО ТІЛЬКИ ОСОБИСТІ ЗАМОВЛЕННЯ ДЛЯ ЗВИЧАЙНОГО КОРИСТУВАЧА -->
+                    <h4 class="fw-bold mb-4" style="color: #212529;">Історія моїх замовлень</h4>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="border-0 rounded-start-3">№ Замовлення</th>
+                                    <th scope="col" class="border-0">Статус</th>
+                                    <th scope="col" class="border-0">Сума</th>
+                                    <th scope="col" class="border-0 rounded-end-3">Дія</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td class="fw-bold">#{{ order.id }}</td>
+                                    <td>
+                                        {% if order.status == 'new' or order.status == 'pending' %}
+                                            <span class="badge bg-primary text-dark rounded-pill">Нове</span>
+                                        {% elif order.status == 'processing' %}
+                                            <span class="badge bg-warning text-dark rounded-pill">В обробці</span>
+                                        {% elif order.status == 'sent' %}
+                                            <span class="badge bg-info text-dark rounded-pill">Відправлено</span>
+                                        {% elif order.status == 'completed' %}
+                                            <span class="badge bg-success text-dark rounded-pill">Завершено</span>
+                                        {% else %}
+                                            <span class="badge bg-danger text-dark rounded-pill">Скасовано</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold">{{ order.get_total_price }} грн</td>
+                                    <td>
+                                        <a href="{% url 'storeapp:order_detail' order.id %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">Деталі</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="bi bi-box-seam display-6 d-block mb-2 opacity-50"></i>
+                                        Ви ще не робили замовлень.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
             </div>
         </div>
 
